@@ -39,6 +39,7 @@ enum insn_emulation_mode {
 enum legacy_insn_status {
 	INSN_DEPRECATED,
 	INSN_OBSOLETE,
+	INSN_HW_SUPPORTED,
 };
 
 struct insn_emulation_ops {
@@ -190,6 +191,12 @@ static void __init register_insn_emulation(struct insn_emulation_ops *ops)
 	case INSN_OBSOLETE:
 		insn->current_mode = INSN_UNDEF;
 		insn->max = INSN_EMULATE;
+		break;
+	case INSN_HW_SUPPORTED:
+		insn->current_mode = INSN_HW;
+		/* Enable the HW mode */
+		run_all_cpu_set_hw_mode(insn, true);
+		insn->max = INSN_HW;
 		break;
 	}
 
@@ -533,7 +540,7 @@ static struct undef_hook cp15_barrier_hooks[] = {
 
 static struct insn_emulation_ops cp15_barrier_ops = {
 	.name = "cp15_barrier",
-	.status = INSN_DEPRECATED,
+	.status = INSN_HW_SUPPORTED,
 	.hooks = cp15_barrier_hooks,
 	.set_hw_mode = cp15_barrier_set_hw_mode,
 };
